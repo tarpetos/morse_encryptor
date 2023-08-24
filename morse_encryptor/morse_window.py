@@ -1,5 +1,6 @@
 import os
 import tkinter as tk
+import customtkinter as ctk
 import pygame
 
 from typing import Dict, Any
@@ -8,7 +9,7 @@ from .alphabet import MORSE_CODE_DICT
 from .encryption_decryption import encrypt, decrypt
 
 
-class Window(tk.Tk):
+class Window(ctk.CTk):
     ENGLISH: str = 'EN'
     CYRILLIC_DEFAULT: str = 'CYRILLIC'
     UKRAINIAN: str = 'UA'
@@ -24,8 +25,8 @@ class Window(tk.Tk):
         self.entry_enc_modifier.trace('w', self.entry_modified)
         self.entry_dec_modifier.trace('w', self.entry_modified)
 
-        self.entry_enc = tk.Entry(textvariable=self.entry_enc_modifier)
-        self.entry_dec = tk.Entry(textvariable=self.entry_dec_modifier)
+        self.entry_enc = ctk.CTkEntry(self, textvariable=self.entry_enc_modifier)
+        self.entry_dec = ctk.CTkEntry(self, textvariable=self.entry_dec_modifier)
 
         self.entry_enc.bind('<Button-3>', self.activate_entry_enc)
         self.entry_dec.bind('<Button-3>', self.activate_entry_dec)
@@ -36,7 +37,7 @@ class Window(tk.Tk):
         self.ru_radio_button = self.radio_button_creator(self.RUSSIAN)
 
         # default activation of encryption field
-        self.entry_dec.config(state='readonly')
+        self.entry_dec.configure(state='readonly')
         self.entry_activated = 'enc'
         self.en_radio_button.select()
 
@@ -57,9 +58,9 @@ class Window(tk.Tk):
         self.ua_radio_button.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.ru_radio_button.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-    def radio_button_creator(self, language: str) -> tk.Radiobutton:
-        return tk.Radiobutton(
-            text=language, value=language,
+    def radio_button_creator(self, language: str) -> ctk.CTkRadioButton:
+        return ctk.CTkRadioButton(
+            self, text=language, value=language, variable=self.radio_button_selector,
             command=lambda: self.radio_button_entries_reloader(language)
         )
 
@@ -72,7 +73,9 @@ class Window(tk.Tk):
         elif self.entry_activated == 'dec':
             self.reload_entries(self.entry_dec, self.entry_enc, decrypt, working_dict)
 
-    def reload_entries(self, source_entry: tk.Entry, target_entry: tk.Entry, function, working_dict: Dict[str, str]):
+    def reload_entries(
+            self, source_entry: ctk.CTkEntry, target_entry: ctk.CTkEntry, function, working_dict: Dict[str, str]
+    ):
         current_data = source_entry.get()
         source_entry.delete(0, tk.END)
         target_entry.delete(0, tk.END)
@@ -82,13 +85,13 @@ class Window(tk.Tk):
         target_entry_modifier.set(function(current_data, working_dict))
 
     def activate_entry_enc(self, event: Any):
-        self.entry_enc.config(state='normal')
-        self.entry_dec.config(state='readonly')
+        self.entry_enc.configure(state='normal')
+        self.entry_dec.configure(state='readonly')
         self.entry_activated = 'enc'
 
     def activate_entry_dec(self, event: Any):
-        self.entry_dec.config(state='normal')
-        self.entry_enc.config(state='readonly')
+        self.entry_dec.configure(state='normal')
+        self.entry_enc.configure(state='readonly')
         self.entry_activated = 'dec'
 
     def entry_modified(self, *args):

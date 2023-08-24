@@ -1,1 +1,2 @@
 pygame==2.5.1
+customtkinter~=5.2.0
