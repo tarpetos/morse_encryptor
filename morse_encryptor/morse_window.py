@@ -1,5 +1,4 @@
 import os
-import tkinter as tk
 import customtkinter as ctk
 import pygame
 
@@ -18,15 +17,17 @@ class Window(ctk.CTk):
 
     def __init__(self):
         super().__init__()
-        self.entry_enc_modifier = tk.StringVar()
-        self.entry_dec_modifier = tk.StringVar()
-        self.radio_button_selector = tk.StringVar()
+        self.main_frame = ctk.CTkFrame(self)
+
+        self.entry_enc_modifier = ctk.StringVar()
+        self.entry_dec_modifier = ctk.StringVar()
+        self.radio_button_selector = ctk.StringVar()
 
         self.entry_enc_modifier.trace('w', self.entry_modified)
         self.entry_dec_modifier.trace('w', self.entry_modified)
 
-        self.entry_enc = ctk.CTkEntry(self, textvariable=self.entry_enc_modifier)
-        self.entry_dec = ctk.CTkEntry(self, textvariable=self.entry_dec_modifier)
+        self.entry_enc = ctk.CTkEntry(self.main_frame, textvariable=self.entry_enc_modifier, font=('Georgia', 20))
+        self.entry_dec = ctk.CTkEntry(self.main_frame, textvariable=self.entry_dec_modifier, font=('Georgia', 20))
 
         self.entry_enc.bind('<Button-3>', self.activate_entry_enc)
         self.entry_dec.bind('<Button-3>', self.activate_entry_dec)
@@ -52,15 +53,16 @@ class Window(ctk.CTk):
         self.place_elements()
 
     def place_elements(self):
-        self.entry_enc.pack(fill=tk.BOTH, expand=True)
-        self.entry_dec.pack(fill=tk.BOTH, expand=True)
-        self.en_radio_button.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.ua_radio_button.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.ru_radio_button.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.entry_enc.pack(fill=ctk.BOTH, expand=True, padx=5, pady=5)
+        self.entry_dec.pack(fill=ctk.BOTH, expand=True, padx=5, pady=(0, 5))
+        self.en_radio_button.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True, pady=(0, 5), padx=(75, 0))
+        self.ua_radio_button.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True, pady=(0, 5))
+        self.ru_radio_button.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True, pady=(0, 5))
+        self.main_frame.pack(padx=10, pady=10, fill=ctk.BOTH, expand=True)
 
     def radio_button_creator(self, language: str) -> ctk.CTkRadioButton:
         return ctk.CTkRadioButton(
-            self, text=language, value=language, variable=self.radio_button_selector,
+            self.main_frame, text=language, value=language, variable=self.radio_button_selector,
             command=lambda: self.radio_button_entries_reloader(language)
         )
 
@@ -77,8 +79,8 @@ class Window(ctk.CTk):
             self, source_entry: ctk.CTkEntry, target_entry: ctk.CTkEntry, function, working_dict: Dict[str, str]
     ):
         current_data = source_entry.get()
-        source_entry.delete(0, tk.END)
-        target_entry.delete(0, tk.END)
+        source_entry.delete(0, ctk.END)
+        target_entry.delete(0, ctk.END)
         source_entry_modifier = self.entry_enc_modifier if source_entry == self.entry_enc else self.entry_dec_modifier
         target_entry_modifier = self.entry_dec_modifier if target_entry == self.entry_dec else self.entry_enc_modifier
         source_entry_modifier.set(current_data)
