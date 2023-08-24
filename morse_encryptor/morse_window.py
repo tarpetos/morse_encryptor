@@ -10,8 +10,10 @@ from .encryption_decryption import encrypt, decrypt
 
 class Window(tk.Tk):
     ENGLISH: str = 'EN'
+    CYRILLIC_DEFAULT: str = 'CYRILLIC'
     UKRAINIAN: str = 'UA'
     RUSSIAN: str = 'RU'
+    OTHER: str = 'OTHER'
 
     def __init__(self):
         super().__init__()
@@ -29,16 +31,9 @@ class Window(tk.Tk):
         self.entry_dec.bind('<Button-3>', self.activate_entry_dec)
 
         self.radio_button_selector.set(self.ENGLISH)
-        self.en_radio_button = tk.Radiobutton(
-            text=self.ENGLISH, value=self.ENGLISH, command=lambda: self.radio_button_entries_reloader(self.ENGLISH)
-        )
-        self.ua_radio_button = tk.Radiobutton(
-            text=self.UKRAINIAN, value=self.UKRAINIAN,
-            command=lambda: self.radio_button_entries_reloader(self.UKRAINIAN)
-        )
-        self.ru_radio_button = tk.Radiobutton(
-            text=self.RUSSIAN, value=self.RUSSIAN, command=lambda: self.radio_button_entries_reloader(self.RUSSIAN)
-        )
+        self.en_radio_button = self.radio_button_creator(self.ENGLISH)
+        self.ua_radio_button = self.radio_button_creator(self.UKRAINIAN)
+        self.ru_radio_button = self.radio_button_creator(self.RUSSIAN)
 
         # default activation of encryption field
         self.entry_dec.config(state='readonly')
@@ -61,6 +56,12 @@ class Window(tk.Tk):
         self.en_radio_button.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.ua_radio_button.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.ru_radio_button.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    def radio_button_creator(self, language: str) -> tk.Radiobutton:
+        return tk.Radiobutton(
+            text=language, value=language,
+            command=lambda: self.radio_button_entries_reloader(language)
+        )
 
     def radio_button_entries_reloader(self, language: str):
         self.radio_button_selector.set(language)
@@ -103,16 +104,15 @@ class Window(tk.Tk):
             self.entry_enc_modifier.set(decrypt(data, working_dict))
 
     def alphabet_creator(self, selector_choice: str) -> Dict[str, str]:
-        if selector_choice == self.ENGLISH:
-            result_dict = MORSE_CODE_DICT['LATIN']
-        elif selector_choice == self.UKRAINIAN:
-            result_dict = MORSE_CODE_DICT['CYRILLIC']['DEFAULT']
-            result_dict.update(MORSE_CODE_DICT['CYRILLIC']['UA'])
-        else:
-            result_dict = MORSE_CODE_DICT['CYRILLIC']['DEFAULT']
-            result_dict.update(MORSE_CODE_DICT['CYRILLIC']['RU'])
+        result_dict = {}
 
-        result_dict.update(MORSE_CODE_DICT['OTHER'])
+        if selector_choice == self.ENGLISH:
+            result_dict.update(MORSE_CODE_DICT[selector_choice])
+        else:
+            result_dict.update(MORSE_CODE_DICT[self.CYRILLIC_DEFAULT])
+            result_dict.update(MORSE_CODE_DICT[selector_choice])
+
+        result_dict.update(MORSE_CODE_DICT[self.OTHER])
 
         return result_dict
 
