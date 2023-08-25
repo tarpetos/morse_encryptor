@@ -28,8 +28,17 @@ Welcome to the Morse Encryptor and Decryptor tool! This tool allows you to encod
 ## Installation
 
 1. Clone this repository to your local machine. Python 3.10 or above must be installed
-2. Install the required libraries using `pip install -r requirements.txt`.
-3. Run the application using `python main.py`.
+2. If not installed you need to execute `sudo apt-get install python3-dev`
+3. Also, if not installed you need to execute `sudo apt-get install python3-tk`
+4. Install the required libraries using `pip install -r requirements.txt`.
+5. Run the application using `python main.py`.
+
+## Creation of a binary file using PyInstaller
+
+1. Run a command `pyinstaller --noconfirm --onefile --windowed main.py`
+2. If command still not working try `sudo apt-get install python<specific-version>-dev`
+3. If command still not working try `sudo apt-get install python<specific-version>-tk`
+4. To make sounds work you need to copy sounds folder to the binary or exe file location
 
 ## Compatibility
 

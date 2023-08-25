@@ -1,32 +1,26 @@
-from typing import Dict
+from typing import Dict, List
+
+EMPTY_SPACE: str = ' '
+EMPTY_STRING: str = ''
+UNKNOWN_SYMBOL: str = '𖡄 '
 
 
 def encrypt(text_data: str, working_dict: Dict[str, str]) -> str:
-    text_data = text_data.upper()
-    text_data_list = list(text_data)
-    print(text_data_list)
+    text_data: str = text_data.upper()
 
-    encrypted_message = ''.join(
-        ' ' if char == ' ' else ('𖡄 ' if char not in working_dict.keys() else working_dict[f'{char}'] + ' ')
-        for char in text_data_list
-    )
-
-    return encrypted_message.strip()
-
-
-def get_key_by_value(working_dict: Dict[str, str], value: str) -> str:
-    for key, val in working_dict.items():
-        if val == value:
-            return key
-    return '𖡄'
+    encrypted_message = [
+        EMPTY_SPACE if char == EMPTY_SPACE else (working_dict.get(char, UNKNOWN_SYMBOL) + EMPTY_SPACE)
+        for char in text_data
+    ]
+    return ''.join(encrypted_message).strip()
 
 
 def decrypt(encrypted_data: str, working_dict: Dict[str, str]) -> str:
-    encrypted_data_list = encrypted_data.split(' ')
-    print(encrypted_data_list)
+    encrypted_data_list: List[str] = encrypted_data.split(EMPTY_SPACE)
 
-    decrypted_message = ''.join(
-        ' ' if enc_char == '' else get_key_by_value(working_dict, enc_char)
+    decrypted_message = [
+        EMPTY_SPACE if enc_char == EMPTY_STRING
+        else next((key for key, val in working_dict.items() if val == enc_char), UNKNOWN_SYMBOL.strip())
         for enc_char in encrypted_data_list
-    )
-    return decrypted_message.strip()
+    ]
+    return ''.join(decrypted_message)

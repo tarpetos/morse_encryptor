@@ -1,2 +1,3 @@
-pygame==2.5.1
+pygame~=2.5.1
 customtkinter~=5.2.0
+pyinstaller~=5.13.0

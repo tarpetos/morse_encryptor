@@ -1,6 +1,6 @@
 import os
 import customtkinter as ctk
-import pygame
+from pygame.mixer import Sound, init
 
 from typing import Dict, Any
 
@@ -14,6 +14,7 @@ class Window(ctk.CTk):
     UKRAINIAN: str = 'UA'
     RUSSIAN: str = 'RU'
     OTHER: str = 'OTHER'
+    SOUND_PATH: str = 'sounds'
 
     def __init__(self):
         super().__init__()
@@ -42,14 +43,7 @@ class Window(ctk.CTk):
         self.entry_activated = 'enc'
         self.en_radio_button.select()
 
-        # decrypted symbols sounds initialization
-        pygame.mixer.init()
-        short_sound_path = os.path.join('sounds', 'short.mp3')
-        long_sound_path = os.path.join('sounds', 'long.mp3')
-        self.dot_sound = pygame.mixer.Sound(short_sound_path)
-        self.dash_sound = pygame.mixer.Sound(long_sound_path)
         self.max_dec_length = 0
-
         self.place_elements()
 
     def place_elements(self):
@@ -97,19 +91,19 @@ class Window(ctk.CTk):
         self.entry_activated = 'dec'
 
     def entry_modified(self, *args):
-        user_choice = self.radio_button_selector.get()
-        working_dict = self.alphabet_creator(user_choice)
+        user_choice: str = self.radio_button_selector.get()
+        working_dict: Dict[str, str] = self.alphabet_creator(user_choice)
 
         if self.entry_activated == 'enc':
-            data = self.entry_enc.get()
+            data: str = self.entry_enc.get()
             self.entry_dec_modifier.set(encrypt(data, working_dict))
         elif self.entry_activated == 'dec':
-            data = self.entry_dec.get()
-            self.play_sound(data)
+            data: str = self.entry_dec.get()
+            self.sound_loader(data)
             self.entry_enc_modifier.set(decrypt(data, working_dict))
 
     def alphabet_creator(self, selector_choice: str) -> Dict[str, str]:
-        result_dict = {}
+        result_dict: Dict = {}
 
         if selector_choice == self.ENGLISH:
             result_dict.update(MORSE_CODE_DICT[selector_choice])
@@ -122,7 +116,18 @@ class Window(ctk.CTk):
         return result_dict
 
     def play_sound(self, data: str):
+        init()
+        short_sound_path: str = os.path.join(self.SOUND_PATH, 'short.mp3')
+        long_sound_path: str = os.path.join(self.SOUND_PATH, 'long.mp3')
+        dot_sound: Sound = Sound(short_sound_path)
+        dash_sound: Sound = Sound(long_sound_path)
+
         temp_length = len(data)
+
         if temp_length > self.max_dec_length:
-            self.dash_sound.play() if data.endswith('-') else (self.dot_sound.play() if data.endswith('.') else ...)
+            dash_sound.play() if data.endswith('-') else (dot_sound.play() if data.endswith('.') else ...)
         self.max_dec_length = temp_length
+
+    def sound_loader(self, data: str):
+        if os.path.exists(self.SOUND_PATH):
+            self.play_sound(data)
