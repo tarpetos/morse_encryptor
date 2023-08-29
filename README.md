@@ -35,7 +35,7 @@ Welcome to the Morse Encryptor and Decryptor tool! This tool allows you to encod
 
 ## Creation of a binary file using PyInstaller
 
-1. Run a command `pyinstaller --noconfirm --onefile --windowed main.py`
+1. Run a command `pyinstaller --noconfirm --onefile --windowed --add-data "morse_encryptor/sounds/*.bin:morse_encryptor/sounds" --name "Morse De(Coder)" --icon=icon/morse_icon.png main.py`
 2. If command still not working try `sudo apt-get install python<specific-version>-dev`
 3. If command still not working try `sudo apt-get install python<specific-version>-tk`
 4. To make sounds work you need to copy sounds folder to the binary or exe file location
