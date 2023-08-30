@@ -1,6 +1,8 @@
 import os
+import threading
+
 import customtkinter as ctk
-from pygame.mixer import Sound, init
+import pygame
 
 from typing import Dict, Any
 
@@ -14,7 +16,7 @@ from .audio_transformer import (
     binary_reader,
     SAVE_DIR,
 )
-from .encryption_decryption import encrypt, decrypt
+from .encryption_decryption import encrypt, decrypt, EMPTY_SPACE
 
 
 class Window(ctk.CTk):
@@ -23,6 +25,13 @@ class Window(ctk.CTk):
     UKRAINIAN: str = "UA"
     RUSSIAN: str = "RU"
     OTHER: str = "OTHER"
+    LONG_SYMBOL: str = "-"
+    SHORT_SYMBOL: str = "."
+    PLAY_TEXT: str = "\u25B6"
+    STOP_TEXT: str = "STOP"
+    PAUSE_BETWEEN_SOUNDS: int = 200
+    DEFAULT_FONT_NAME: str = "Georgia"
+    DEFAULT_FONT_SIZE: int = 20
 
     def __init__(self):
         super().__init__()
@@ -31,15 +40,20 @@ class Window(ctk.CTk):
         self.entry_enc_modifier = ctk.StringVar()
         self.entry_dec_modifier = ctk.StringVar()
         self.radio_button_selector = ctk.StringVar()
+        self.slider_value = ctk.IntVar()
 
         self.entry_enc_modifier.trace("w", self.entry_modified)
         self.entry_dec_modifier.trace("w", self.entry_modified)
 
         self.entry_enc = ctk.CTkEntry(
-            self.main_frame, textvariable=self.entry_enc_modifier, font=("Georgia", 20)
+            self.main_frame,
+            textvariable=self.entry_enc_modifier,
+            font=(self.DEFAULT_FONT_NAME, self.DEFAULT_FONT_SIZE),
         )
         self.entry_dec = ctk.CTkEntry(
-            self.main_frame, textvariable=self.entry_dec_modifier, font=("Georgia", 20)
+            self.main_frame,
+            textvariable=self.entry_dec_modifier,
+            font=(self.DEFAULT_FONT_NAME, self.DEFAULT_FONT_SIZE),
         )
 
         self.entry_enc.bind("<Button-3>", self.activate_entry_enc)
@@ -50,6 +64,31 @@ class Window(ctk.CTk):
         self.ua_radio_button = self.radio_button_creator(self.UKRAINIAN)
         self.ru_radio_button = self.radio_button_creator(self.RUSSIAN)
 
+        self.play_morse_sound_button = ctk.CTkButton(
+            self.main_frame,
+            text=self.PLAY_TEXT,
+            command=lambda: self.start_voice(),
+        )
+
+        self.slider_value.set(self.DEFAULT_FONT_SIZE)
+        self.font_size_slider = ctk.CTkSlider(
+            self.main_frame,
+            from_=self.DEFAULT_FONT_SIZE - 10,
+            to=self.DEFAULT_FONT_SIZE * 10,
+            variable=self.slider_value,
+            command=self.font_slider_lister,
+        )
+
+        pygame.mixer.init()
+        short_sound_path: str = os.path.join(
+            SAVE_DIR, f"{SHORT_SOUND}.{DEFAULT_AUDIO_FORMAT}"
+        )
+        long_sound_path: str = os.path.join(
+            SAVE_DIR, f"{LONG_SOUND}.{DEFAULT_AUDIO_FORMAT}"
+        )
+        self.dot_sound = pygame.mixer.Sound(short_sound_path)
+        self.dash_sound = pygame.mixer.Sound(long_sound_path)
+
         # default activation of encryption field
         self.entry_dec.configure(state="readonly")
         self.entry_activated = "enc"
@@ -57,19 +96,41 @@ class Window(ctk.CTk):
 
         self.max_dec_length = 0
         self.place_elements()
+        self.load_sounds()
+
+        self.running_event = threading.Event()
+        self.thread = None
+        self.stop_voice_flag = False
 
     def place_elements(self):
         self.entry_enc.pack(fill=ctk.BOTH, expand=True, padx=5, pady=5)
         self.entry_dec.pack(fill=ctk.BOTH, expand=True, padx=5, pady=(0, 5))
+        self.font_size_slider.pack(fill=ctk.BOTH, padx=5, pady=(0, 5))
+
         self.en_radio_button.pack(
-            side=ctk.LEFT, fill=ctk.BOTH, expand=True, pady=(0, 5), padx=(75, 0)
+            side=ctk.LEFT,
+            fill=ctk.BOTH,
+            expand=True,
+            padx=(5, 0),
         )
         self.ua_radio_button.pack(
-            side=ctk.LEFT, fill=ctk.BOTH, expand=True, pady=(0, 5)
+            side=ctk.LEFT,
+            fill=ctk.BOTH,
+            expand=True,
         )
         self.ru_radio_button.pack(
-            side=ctk.LEFT, fill=ctk.BOTH, expand=True, pady=(0, 5)
+            side=ctk.LEFT,
+            fill=ctk.BOTH,
+            expand=True,
         )
+        self.play_morse_sound_button.pack(
+            side=ctk.RIGHT,
+            fill=ctk.BOTH,
+            expand=True,
+            padx=(0, 5),
+            pady=(0, 5),
+        )
+
         self.main_frame.pack(padx=10, pady=10, fill=ctk.BOTH, expand=True)
 
     def radio_button_creator(self, language: str) -> ctk.CTkRadioButton:
@@ -148,34 +209,80 @@ class Window(ctk.CTk):
 
         return result_dict
 
-    def load_sound(self):
-        full_long_sound_path = os.path.join(SAVE_DIR, f"{LONG_SOUND}.{DEFAULT_AUDIO_FORMAT}")
-        full_short_sound_path = os.path.join(SAVE_DIR, f"{SHORT_SOUND}.{DEFAULT_AUDIO_FORMAT}")
+    def load_sounds(self):
+        full_long_sound_path = os.path.join(
+            SAVE_DIR, f"{LONG_SOUND}.{DEFAULT_AUDIO_FORMAT}"
+        )
+        full_short_sound_path = os.path.join(
+            SAVE_DIR, f"{SHORT_SOUND}.{DEFAULT_AUDIO_FORMAT}"
+        )
 
-        if os.path.exists(full_long_sound_path) and os.path.exists(full_short_sound_path):
+        if os.path.exists(full_long_sound_path) and os.path.exists(
+            full_short_sound_path
+        ):
             return full_long_sound_path, full_short_sound_path
 
         self.build_audio_from_binary(LONG_SOUND)
         self.build_audio_from_binary(SHORT_SOUND)
 
     def play_sound(self, data: str):
-        self.load_sound()
-        init()
-        short_sound_path: str = os.path.join(SAVE_DIR, f"{SHORT_SOUND}.{DEFAULT_AUDIO_FORMAT}")
-        long_sound_path: str = os.path.join(SAVE_DIR, f"{LONG_SOUND}.{DEFAULT_AUDIO_FORMAT}")
-        dot_sound: Sound = Sound(short_sound_path)
-        dash_sound: Sound = Sound(long_sound_path)
-
         temp_length = len(data)
 
         if temp_length > self.max_dec_length:
-            dash_sound.play() if data.endswith("-") else (
-                dot_sound.play() if data.endswith(".") else ...
+            self.dash_sound.play() if data.endswith(self.LONG_SYMBOL) else (
+                self.dot_sound.play() if data.endswith(self.SHORT_SYMBOL) else ...
             )
         self.max_dec_length = temp_length
 
-    # def sound_loader(self, data: str):
-    #     self.play_sound(data)
+    def voice_encrypted_input(self, data: str):
+        if not data:
+            return
+
+        symbol_sound_mapping = {
+            self.LONG_SYMBOL: self.dash_sound,
+            self.SHORT_SYMBOL: self.dot_sound,
+        }
+
+        for char in data:
+            if self.stop_voice_flag:
+                break
+            if char in symbol_sound_mapping:
+                symbol_sound_mapping[char].play()
+                pygame.time.wait(self.PAUSE_BETWEEN_SOUNDS)
+
+        self.play_morse_sound_button.configure(
+            text=self.PLAY_TEXT, command=lambda: self.start_voice()
+        )
+
+    def start_voice(self):
+        data: str = self.entry_dec.get()
+
+        if not self.check_str_for_dot_and_dash(data):
+            return
+
+        self.play_morse_sound_button.configure(
+            text=self.STOP_TEXT, command=lambda: self.stop_voice()
+        )
+        self.stop_voice_flag = False
+
+        if self.thread is None or not self.thread.is_alive():
+            self.running_event.clear()
+            self.thread = threading.Thread(
+                target=self.voice_encrypted_input, args=(data,)
+            )
+            self.thread.start()
+
+    def stop_voice(self):
+        self.stop_voice_flag = True
+        self.running_event.set()
+
+    def check_str_for_dot_and_dash(self, text: str) -> bool:
+        allowed_symbols = (self.SHORT_SYMBOL, self.LONG_SYMBOL, EMPTY_SPACE)
+        return False if not text else all(char in allowed_symbols for char in text)
+
+    def font_slider_lister(self, event):
+        self.entry_enc.configure(font=(self.DEFAULT_FONT_NAME, int(event)))
+        self.entry_dec.configure(font=(self.DEFAULT_FONT_NAME, int(event)))
 
     @staticmethod
     def build_audio_from_binary(sound_name: str):

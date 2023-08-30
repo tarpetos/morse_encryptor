@@ -19,7 +19,9 @@ SOUND_PATH = get_binary_file_path("sounds/")
 SAVE_DIR = (
     os.path.expanduser("~/.Morse (De)Coder Sounds/")
     if platform.system() == "Linux"
-    else os.path.expandvars("C:/Users/$USERNAME/AppData/Roaming/.Morse (De)Coder Sounds/")
+    else os.path.expandvars(
+        "C:/Users/$USERNAME/AppData/Roaming/.Morse (De)Coder Sounds/"
+    )
 )
 LONG_SOUND = "long"
 SHORT_SOUND = "short"
