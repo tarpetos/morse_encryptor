@@ -1,7 +1,7 @@
 <h1 style="text-align:center">Morse Encryptor and Decryptor</h1> 
 
 <div style="text-align:center">
-  <img src="icon/morse_icon.png" alt="Colorful Icon" style="filter: saturate(200%) contrast(150%) brightness(120%);">
+  <img src="images/morse_icon.png" alt="Colorful Icon" style="filter: saturate(200%) contrast(150%) brightness(120%);">
 </div>
 
 ---
@@ -23,7 +23,7 @@ Welcome to the Morse Encryptor and Decryptor tool! This tool allows you to encod
 4. To change the input field, right-click on the desired input.
 5. Enjoy the magic of Morse code communication!
 
-![Screenshot of the Tool](icon/example.png)
+![Screenshot of the Tool](images/example.png)
 
 ## Installation
 
@@ -35,7 +35,7 @@ Welcome to the Morse Encryptor and Decryptor tool! This tool allows you to encod
 
 ## Creation of a binary file using PyInstaller
 
-1. Run a command `pyinstaller --noconfirm --onefile --windowed --add-data "morse_encryptor/sounds/*.bin:morse_encryptor/sounds" --name "Morse De(Coder)" --icon=icon/morse_icon.png main.py`
+1. Run a command `pyinstaller --noconfirm --onefile --windowed --add-data "morse_encryptor/sounds/*.bin:morse_encryptor/sounds" --name "Morse De(Coder)" --icon=images/morse_icon.png main.py`
 2. If command still not working try `sudo apt-get install python<specific-version>-dev`
 3. If command still not working try `sudo apt-get install python<specific-version>-tk`
 4. To make sounds work you need to copy sounds folder to the binary or exe file location
