@@ -7,14 +7,14 @@ import pygame
 
 from typing import Dict, Any, Optional
 
-from .constants import AudioConstants, MorseConstants
+from .constants import AudioConstants, MorseConstants, SpecConstants
 from .alphabet import MORSE_CODE_DICT
 from .audio_transformer import (
     AudioBuilder,
     AudioController,
     binary_reader,
 )
-from .encryption_decryption import encrypt, decrypt, EMPTY_SPACE
+from .encryption_decryption import encrypt, decrypt
 
 
 class MorsePlayer:
@@ -329,7 +329,7 @@ class Window(ctk.CTk):
         allowed_symbols = (
             MorseConstants.SHORT_SYMBOL,
             MorseConstants.LONG_SYMBOL,
-            EMPTY_SPACE,
+            SpecConstants.EMPTY_SPACE,
         )
         return False if not text else all(char in allowed_symbols for char in text)
 

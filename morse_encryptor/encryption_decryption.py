@@ -1,31 +1,32 @@
 from typing import Dict, List
 
-EMPTY_SPACE: str = " "
-EMPTY_STRING: str = ""
-UNKNOWN_SYMBOL: str = "𖡄 "
+from .constants import SpecConstants
 
 
 def encrypt(text_data: str, working_dict: Dict[str, str]) -> str:
     text_data: str = text_data.upper()
 
     encrypted_message = [
-        EMPTY_SPACE
-        if char == EMPTY_SPACE
-        else (working_dict.get(char, UNKNOWN_SYMBOL) + EMPTY_SPACE)
+        SpecConstants.EMPTY_SPACE
+        if char == SpecConstants.EMPTY_SPACE
+        else (
+            working_dict.get(char, SpecConstants.UNKNOWN_SYMBOL)
+            + SpecConstants.EMPTY_SPACE
+        )
         for char in text_data
     ]
     return "".join(encrypted_message).strip()
 
 
 def decrypt(encrypted_data: str, working_dict: Dict[str, str]) -> str:
-    encrypted_data_list: List[str] = encrypted_data.split(EMPTY_SPACE)
+    encrypted_data_list: List[str] = encrypted_data.split(SpecConstants.EMPTY_SPACE)
 
     decrypted_message = [
-        EMPTY_SPACE
-        if enc_char == EMPTY_STRING
+        SpecConstants.EMPTY_SPACE
+        if enc_char == SpecConstants.EMPTY_STRING
         else next(
             (key for key, val in working_dict.items() if val == enc_char),
-            UNKNOWN_SYMBOL.strip(),
+            SpecConstants.UNKNOWN_SYMBOL.strip(),
         )
         for enc_char in encrypted_data_list
     ]

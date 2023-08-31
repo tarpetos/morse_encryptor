@@ -19,26 +19,32 @@ def platform_depending_save_folder() -> str:
         # return os.path.expandvars(f"C:/Users/$USERNAME/AppData/Roaming/{sounds_folder_name}/")
 
 
+class SpecConstants:
+    EMPTY_SPACE: str = " "
+    EMPTY_STRING: str = ""
+    UNKNOWN_SYMBOL: str = "𖡄 "
+
+
 class AudioConstants:
-    SOUND_PATH = get_binary_file_path("sounds/")
-    SAVE_DIR = platform_depending_save_folder()
-    LONG_SOUND = "long"
-    SHORT_SOUND = "short"
-    DEFAULT_AUDIO_FORMAT = "wav"
-    DEFAULT_BINARY_FORMAT = "bin"
+    SOUND_PATH: str = get_binary_file_path("sounds/")
+    SAVE_DIR: str = platform_depending_save_folder()
+    LONG_SOUND: str = "long"
+    SHORT_SOUND: str = "short"
+    DEFAULT_AUDIO_FORMAT: str = "wav"
+    DEFAULT_BINARY_FORMAT: str = "bin"
 
 
 class MorseConstants:
-    ENGLISH = "EN"
-    CYRILLIC_DEFAULT = "CYRILLIC"
-    UKRAINIAN = "UA"
-    RUSSIAN = "RU"
-    OTHER = "OTHER"
-    LONG_SYMBOL = "-"
-    SHORT_SYMBOL = "."
-    PLAY_TEXT = "\u25B6"
-    STOP_TEXT = "STOP"
-    PAUSE_BETWEEN_SOUNDS_MS = 200
-    DEFAULT_FONT_STYLE_NAME = "Georgia"
-    DEFAULT_FONT_SIZE = 20
-    MESSAGEBOX_EXIT_TIMEOUT_MS = 500
+    ENGLISH: str = "EN"
+    CYRILLIC_DEFAULT: str = "CYRILLIC"
+    UKRAINIAN: str = "UA"
+    RUSSIAN: str = "RU"
+    OTHER: str = "OTHER"
+    LONG_SYMBOL: str = "-"
+    SHORT_SYMBOL: str = "."
+    PLAY_TEXT: str = "\u25B6"
+    STOP_TEXT: str = "STOP"
+    PAUSE_BETWEEN_SOUNDS_MS: int = 200
+    DEFAULT_FONT_STYLE_NAME: str = "Georgia"
+    DEFAULT_FONT_SIZE: int = 20
+    MESSAGEBOX_EXIT_TIMEOUT_MS: int = 500
