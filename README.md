@@ -31,14 +31,14 @@ Welcome to the Morse Encryptor and Decryptor tool! This tool allows you to encod
 2. If not installed you need to execute `sudo apt-get install python3-dev`
 3. Also, if not installed you need to execute `sudo apt-get install python3-tk`
 4. Install the required libraries using `pip install -r requirements.txt`.
-5. Run the application using `python main.py`.
+5. Run the application using `python3 main.py`.
 
-## Creation of a binary file using PyInstaller
+## Creation of a binary or *.exe file using PyInstaller
 
-1. Run a command `pyinstaller --noconfirm --onefile --windowed --add-data "morse_encryptor/sounds/*.bin:morse_encryptor/sounds" --name "Morse De(Coder)" --icon=images/morse_icon.png main.py`
+1. Run a command `pyinstaller --noconfirm --onefile --windowed --add-data "morse_encryptor/sounds/*.bin:morse_encryptor/sounds" --name "Morse De(Coder)" main.py`
 2. If command still not working try `sudo apt-get install python<specific-version>-dev`
 3. If command still not working try `sudo apt-get install python<specific-version>-tk`
-4. To make sounds work you need to copy sounds folder to the binary or exe file location
+4. To create *.exe file on Windows run a command `pyinstaller --noconfirm --onefile --windowed --add-data "morse_encryptor/sounds/*.bin:morse_encryptor/sounds" --name "Morse De(Coder)" --icon=images/morse_icon.ico main.py`
 
 ## Compatibility
 
