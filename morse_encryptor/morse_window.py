@@ -7,34 +7,37 @@ import pygame
 
 from typing import Dict, Any, Optional
 
+from .constants import AudioConstants, MorseConstants
 from .alphabet import MORSE_CODE_DICT
 from .audio_transformer import (
-    DEFAULT_AUDIO_FORMAT,
-    LONG_SOUND,
-    SHORT_SOUND,
     AudioBuilder,
     AudioController,
     binary_reader,
-    SAVE_DIR,
 )
 from .encryption_decryption import encrypt, decrypt, EMPTY_SPACE
 
 
-class Window(ctk.CTk):
-    ENGLISH: str = "EN"
-    CYRILLIC_DEFAULT: str = "CYRILLIC"
-    UKRAINIAN: str = "UA"
-    RUSSIAN: str = "RU"
-    OTHER: str = "OTHER"
-    LONG_SYMBOL: str = "-"
-    SHORT_SYMBOL: str = "."
-    PLAY_TEXT: str = "\u25B6"
-    STOP_TEXT: str = "STOP"
-    PAUSE_BETWEEN_SOUNDS_MS: int = 200
-    DEFAULT_FONT_STYLE_NAME: str = "Georgia"
-    DEFAULT_FONT_SIZE: int = 20
-    MESSAGEBOX_EXIT_TIMEOUT_MS = 500
+class MorsePlayer:
+    def __init__(self):
+        pass
 
+
+class MorseTranslator:
+    def __init__(self):
+        pass
+
+
+class MorseUI:
+    def __init__(self):
+        pass
+
+
+class MorseApp:
+    def __init__(self):
+        pass
+
+
+class Window(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.main_frame = ctk.CTkFrame(self)
@@ -50,12 +53,18 @@ class Window(ctk.CTk):
         self.entry_enc = ctk.CTkEntry(
             self.main_frame,
             textvariable=self.entry_enc_modifier,
-            font=(self.DEFAULT_FONT_STYLE_NAME, self.DEFAULT_FONT_SIZE),
+            font=(
+                MorseConstants.DEFAULT_FONT_STYLE_NAME,
+                MorseConstants.DEFAULT_FONT_SIZE,
+            ),
         )
         self.entry_dec = ctk.CTkEntry(
             self.main_frame,
             textvariable=self.entry_dec_modifier,
-            font=(self.DEFAULT_FONT_STYLE_NAME, self.DEFAULT_FONT_SIZE),
+            font=(
+                MorseConstants.DEFAULT_FONT_STYLE_NAME,
+                MorseConstants.DEFAULT_FONT_SIZE,
+            ),
         )
         self.clear_entries_button = ctk.CTkButton(
             self.main_frame, text="CLEAR", command=lambda: self.clear_entry()
@@ -76,22 +85,22 @@ class Window(ctk.CTk):
             ),
         )
 
-        self.radio_button_selector.set(self.ENGLISH)
-        self.en_radio_button = self.radio_button_creator(self.ENGLISH)
-        self.ua_radio_button = self.radio_button_creator(self.UKRAINIAN)
-        self.ru_radio_button = self.radio_button_creator(self.RUSSIAN)
+        self.radio_button_selector.set(MorseConstants.ENGLISH)
+        self.en_radio_button = self.radio_button_creator(MorseConstants.ENGLISH)
+        self.ua_radio_button = self.radio_button_creator(MorseConstants.UKRAINIAN)
+        self.ru_radio_button = self.radio_button_creator(MorseConstants.RUSSIAN)
 
         self.play_morse_sound_button = ctk.CTkButton(
             self.main_frame,
-            text=self.PLAY_TEXT,
+            text=MorseConstants.PLAY_TEXT,
             command=lambda: self.start_voice(),
         )
 
-        self.slider_value.set(self.DEFAULT_FONT_SIZE)
+        self.slider_value.set(MorseConstants.DEFAULT_FONT_SIZE)
         self.font_size_slider = ctk.CTkSlider(
             self.main_frame,
-            from_=self.DEFAULT_FONT_SIZE - 10,
-            to=self.DEFAULT_FONT_SIZE * 10,
+            from_=MorseConstants.DEFAULT_FONT_SIZE - 10,
+            to=MorseConstants.DEFAULT_FONT_SIZE * 10,
             variable=self.slider_value,
             command=self.font_slider_lister,
         )
@@ -112,6 +121,8 @@ class Window(ctk.CTk):
         self.running_event = threading.Event()
         self.thread = None
         self.stop_voice_flag = False
+        self.EXIT_FLAG = False
+        self.protocol("WM_DELETE_WINDOW", self.on_window_closing)
 
     def place_elements(self):
         self.entry_enc.pack(fill=ctk.BOTH, expand=True, padx=5, pady=5)
@@ -208,43 +219,29 @@ class Window(ctk.CTk):
             self.play_sound(data)
             self.entry_enc_modifier.set(decrypt(data, working_dict))
 
-    def alphabet_creator(self, selector_choice: str) -> Dict[str, str]:
-        result_dict: Dict = {}
-
-        if selector_choice == self.ENGLISH:
-            result_dict.update(MORSE_CODE_DICT[selector_choice])
-        else:
-            result_dict.update(MORSE_CODE_DICT[self.CYRILLIC_DEFAULT])
-            result_dict.update(MORSE_CODE_DICT[selector_choice])
-
-        result_dict.update(MORSE_CODE_DICT[self.OTHER])
-
-        return result_dict
-
     def load_sounds(self) -> Optional[tuple[str, str]]:
         full_long_sound_path = os.path.join(
-            SAVE_DIR, f"{LONG_SOUND}.{DEFAULT_AUDIO_FORMAT}"
+            AudioConstants.SAVE_DIR,
+            f"{AudioConstants.LONG_SOUND}.{AudioConstants.DEFAULT_AUDIO_FORMAT}",
         )
         full_short_sound_path = os.path.join(
-            SAVE_DIR, f"{SHORT_SOUND}.{DEFAULT_AUDIO_FORMAT}"
+            AudioConstants.SAVE_DIR,
+            f"{AudioConstants.SHORT_SOUND}.{AudioConstants.DEFAULT_AUDIO_FORMAT}",
         )
 
-        # if os.path.exists(full_long_sound_path) and os.path.exists(
-        #     full_short_sound_path
-        # ):
-        #     return full_long_sound_path, full_short_sound_path
+        self.build_audio_from_binary(AudioConstants.LONG_SOUND)
+        self.build_audio_from_binary(AudioConstants.SHORT_SOUND)
 
-        self.build_audio_from_binary(LONG_SOUND)
-        self.build_audio_from_binary(SHORT_SOUND)
         return full_short_sound_path, full_long_sound_path
 
     def play_sound(self, data: str):
         temp_length = len(data)
 
         if temp_length > self.max_dec_length:
-            self.dash_sound.play() if data.endswith(self.LONG_SYMBOL) else (
-                self.dot_sound.play() if data.endswith(self.SHORT_SYMBOL) else ...
-            )
+            if data.endswith(MorseConstants.LONG_SYMBOL):
+                self.dash_sound.play()
+            elif data.endswith(MorseConstants.SHORT_SYMBOL):
+                self.dot_sound.play()
         self.max_dec_length = temp_length
 
     def voice_encrypted_input(self, data: str):
@@ -252,8 +249,8 @@ class Window(ctk.CTk):
             return
 
         symbol_sound_mapping = {
-            self.LONG_SYMBOL: self.dash_sound,
-            self.SHORT_SYMBOL: self.dot_sound,
+            MorseConstants.LONG_SYMBOL: self.dash_sound,
+            MorseConstants.SHORT_SYMBOL: self.dot_sound,
         }
 
         for char in data:
@@ -261,10 +258,13 @@ class Window(ctk.CTk):
                 break
             if char in symbol_sound_mapping:
                 symbol_sound_mapping[char].play()
-                pygame.time.wait(self.PAUSE_BETWEEN_SOUNDS_MS)
+                pygame.time.wait(MorseConstants.PAUSE_BETWEEN_SOUNDS_MS)
+
+        if self.EXIT_FLAG:
+            return
 
         self.play_morse_sound_button.configure(
-            text=self.PLAY_TEXT, command=lambda: self.start_voice()
+            text=MorseConstants.PLAY_TEXT, command=lambda: self.start_voice()
         )
 
     def start_voice(self):
@@ -274,7 +274,7 @@ class Window(ctk.CTk):
             return
 
         self.play_morse_sound_button.configure(
-            text=self.STOP_TEXT, command=lambda: self.stop_voice()
+            text=MorseConstants.STOP_TEXT, command=lambda: self.stop_voice()
         )
         self.stop_voice_flag = False
 
@@ -289,28 +289,49 @@ class Window(ctk.CTk):
         self.stop_voice_flag = True
         self.running_event.set()
 
-    def check_str_for_dot_and_dash(self, text: str) -> bool:
-        allowed_symbols = (self.SHORT_SYMBOL, self.LONG_SYMBOL, EMPTY_SPACE)
-        return False if not text else all(char in allowed_symbols for char in text)
+    def on_window_closing(self):
+        self.EXIT_FLAG = True
+
+        alive_threads = threading.enumerate()
+        if len(alive_threads) > 1:
+            self.stop_voice()
+
+        self.destroy()
 
     def font_slider_lister(self, event):
-        self.entry_enc.configure(font=(self.DEFAULT_FONT_STYLE_NAME, int(event)))
-        self.entry_dec.configure(font=(self.DEFAULT_FONT_STYLE_NAME, int(event)))
+        self.entry_enc.configure(
+            font=(MorseConstants.DEFAULT_FONT_STYLE_NAME, int(event))
+        )
+        self.entry_dec.configure(
+            font=(MorseConstants.DEFAULT_FONT_STYLE_NAME, int(event))
+        )
 
     def clear_entry(self):
         self.entry_enc.delete(0, ctk.END)
         self.entry_dec.delete(0, ctk.END)
 
-    def copy_to_clipboard(self, event, entry: ctk.CTkEntry, root: ctk.CTkFrame):
-        entry_text = entry.get()
-        entry.select_range(0, ctk.END)
-        root.clipboard_clear()
-        root.clipboard_append(entry_text)
-        root.update()
-        root.after(
-            self.MESSAGEBOX_EXIT_TIMEOUT_MS, lambda: root.event_generate("<Return>")
+    @staticmethod
+    def alphabet_creator(selector_choice: str) -> Dict[str, str]:
+        result_dict: Dict = {}
+
+        if selector_choice == MorseConstants.ENGLISH:
+            result_dict.update(MORSE_CODE_DICT[selector_choice])
+        else:
+            result_dict.update(MORSE_CODE_DICT[MorseConstants.CYRILLIC_DEFAULT])
+            result_dict.update(MORSE_CODE_DICT[selector_choice])
+
+        result_dict.update(MORSE_CODE_DICT[MorseConstants.OTHER])
+
+        return result_dict
+
+    @staticmethod
+    def check_str_for_dot_and_dash(text: str) -> bool:
+        allowed_symbols = (
+            MorseConstants.SHORT_SYMBOL,
+            MorseConstants.LONG_SYMBOL,
+            EMPTY_SPACE,
         )
-        messagebox.showinfo("Success", "Copied!")
+        return False if not text else all(char in allowed_symbols for char in text)
 
     @staticmethod
     def build_audio_from_binary(sound_name: str):
@@ -318,3 +339,16 @@ class Window(ctk.CTk):
         audio_controller = AudioController(f"{sound_name}")
         file_data = binary_reader(f"{sound_name}")
         audio_controller.execute(audio_builder, binary_data=file_data)
+
+    @staticmethod
+    def copy_to_clipboard(event, entry: ctk.CTkEntry, root: ctk.CTkFrame):
+        entry_text = entry.get()
+        entry.select_range(0, ctk.END)
+        root.clipboard_clear()
+        root.clipboard_append(entry_text)
+        root.update()
+        root.after(
+            MorseConstants.MESSAGEBOX_EXIT_TIMEOUT_MS,
+            lambda: root.event_generate("<Return>"),
+        )
+        messagebox.showinfo("Success", "Copied!")
