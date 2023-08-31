@@ -1,10 +1,11 @@
 import os
 import threading
+from tkinter import messagebox
 
 import customtkinter as ctk
 import pygame
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from .alphabet import MORSE_CODE_DICT
 from .audio_transformer import (
@@ -29,9 +30,10 @@ class Window(ctk.CTk):
     SHORT_SYMBOL: str = "."
     PLAY_TEXT: str = "\u25B6"
     STOP_TEXT: str = "STOP"
-    PAUSE_BETWEEN_SOUNDS: int = 200
-    DEFAULT_FONT_NAME: str = "Georgia"
+    PAUSE_BETWEEN_SOUNDS_MS: int = 200
+    DEFAULT_FONT_STYLE_NAME: str = "Georgia"
     DEFAULT_FONT_SIZE: int = 20
+    MESSAGEBOX_EXIT_TIMEOUT_MS = 500
 
     def __init__(self):
         super().__init__()
@@ -48,16 +50,31 @@ class Window(ctk.CTk):
         self.entry_enc = ctk.CTkEntry(
             self.main_frame,
             textvariable=self.entry_enc_modifier,
-            font=(self.DEFAULT_FONT_NAME, self.DEFAULT_FONT_SIZE),
+            font=(self.DEFAULT_FONT_STYLE_NAME, self.DEFAULT_FONT_SIZE),
         )
         self.entry_dec = ctk.CTkEntry(
             self.main_frame,
             textvariable=self.entry_dec_modifier,
-            font=(self.DEFAULT_FONT_NAME, self.DEFAULT_FONT_SIZE),
+            font=(self.DEFAULT_FONT_STYLE_NAME, self.DEFAULT_FONT_SIZE),
+        )
+        self.clear_entries_button = ctk.CTkButton(
+            self.main_frame, text="CLEAR", command=lambda: self.clear_entry()
         )
 
         self.entry_enc.bind("<Button-3>", self.activate_entry_enc)
         self.entry_dec.bind("<Button-3>", self.activate_entry_dec)
+        self.entry_enc.bind(
+            "<Double-Button-3>",
+            lambda event: self.copy_to_clipboard(
+                event, self.entry_enc, self.main_frame
+            ),
+        )
+        self.entry_dec.bind(
+            "<Double-Button-3>",
+            lambda event: self.copy_to_clipboard(
+                event, self.entry_dec, self.main_frame
+            ),
+        )
 
         self.radio_button_selector.set(self.ENGLISH)
         self.en_radio_button = self.radio_button_creator(self.ENGLISH)
@@ -80,12 +97,7 @@ class Window(ctk.CTk):
         )
 
         pygame.mixer.init()
-        short_sound_path: str = os.path.join(
-            SAVE_DIR, f"{SHORT_SOUND}.{DEFAULT_AUDIO_FORMAT}"
-        )
-        long_sound_path: str = os.path.join(
-            SAVE_DIR, f"{LONG_SOUND}.{DEFAULT_AUDIO_FORMAT}"
-        )
+        short_sound_path, long_sound_path = self.load_sounds()
         self.dot_sound = pygame.mixer.Sound(short_sound_path)
         self.dash_sound = pygame.mixer.Sound(long_sound_path)
 
@@ -96,7 +108,6 @@ class Window(ctk.CTk):
 
         self.max_dec_length = 0
         self.place_elements()
-        self.load_sounds()
 
         self.running_event = threading.Event()
         self.thread = None
@@ -104,6 +115,7 @@ class Window(ctk.CTk):
 
     def place_elements(self):
         self.entry_enc.pack(fill=ctk.BOTH, expand=True, padx=5, pady=5)
+        self.clear_entries_button.pack(fill=ctk.BOTH, padx=100, pady=(0, 5))
         self.entry_dec.pack(fill=ctk.BOTH, expand=True, padx=5, pady=(0, 5))
         self.font_size_slider.pack(fill=ctk.BOTH, padx=5, pady=(0, 5))
 
@@ -209,7 +221,7 @@ class Window(ctk.CTk):
 
         return result_dict
 
-    def load_sounds(self):
+    def load_sounds(self) -> Optional[tuple[str, str]]:
         full_long_sound_path = os.path.join(
             SAVE_DIR, f"{LONG_SOUND}.{DEFAULT_AUDIO_FORMAT}"
         )
@@ -217,13 +229,14 @@ class Window(ctk.CTk):
             SAVE_DIR, f"{SHORT_SOUND}.{DEFAULT_AUDIO_FORMAT}"
         )
 
-        if os.path.exists(full_long_sound_path) and os.path.exists(
-            full_short_sound_path
-        ):
-            return full_long_sound_path, full_short_sound_path
+        # if os.path.exists(full_long_sound_path) and os.path.exists(
+        #     full_short_sound_path
+        # ):
+        #     return full_long_sound_path, full_short_sound_path
 
         self.build_audio_from_binary(LONG_SOUND)
         self.build_audio_from_binary(SHORT_SOUND)
+        return full_short_sound_path, full_long_sound_path
 
     def play_sound(self, data: str):
         temp_length = len(data)
@@ -248,7 +261,7 @@ class Window(ctk.CTk):
                 break
             if char in symbol_sound_mapping:
                 symbol_sound_mapping[char].play()
-                pygame.time.wait(self.PAUSE_BETWEEN_SOUNDS)
+                pygame.time.wait(self.PAUSE_BETWEEN_SOUNDS_MS)
 
         self.play_morse_sound_button.configure(
             text=self.PLAY_TEXT, command=lambda: self.start_voice()
@@ -281,8 +294,23 @@ class Window(ctk.CTk):
         return False if not text else all(char in allowed_symbols for char in text)
 
     def font_slider_lister(self, event):
-        self.entry_enc.configure(font=(self.DEFAULT_FONT_NAME, int(event)))
-        self.entry_dec.configure(font=(self.DEFAULT_FONT_NAME, int(event)))
+        self.entry_enc.configure(font=(self.DEFAULT_FONT_STYLE_NAME, int(event)))
+        self.entry_dec.configure(font=(self.DEFAULT_FONT_STYLE_NAME, int(event)))
+
+    def clear_entry(self):
+        self.entry_enc.delete(0, ctk.END)
+        self.entry_dec.delete(0, ctk.END)
+
+    def copy_to_clipboard(self, event, entry: ctk.CTkEntry, root: ctk.CTkFrame):
+        entry_text = entry.get()
+        entry.select_range(0, ctk.END)
+        root.clipboard_clear()
+        root.clipboard_append(entry_text)
+        root.update()
+        root.after(
+            self.MESSAGEBOX_EXIT_TIMEOUT_MS, lambda: root.event_generate("<Return>")
+        )
+        messagebox.showinfo("Success", "Copied!")
 
     @staticmethod
     def build_audio_from_binary(sound_name: str):

@@ -1,6 +1,6 @@
 from morse_encryptor.morse_window import Window
 
-DEFAULT_SIZE: tuple = (500, 200)
+DEFAULT_SIZE: tuple = (500, 600)
 
 
 def main():
