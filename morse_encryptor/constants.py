@@ -22,7 +22,7 @@ def platform_depending_save_folder() -> str:
 class SpecConstants:
     EMPTY_SPACE: str = " "
     EMPTY_STRING: str = ""
-    UNKNOWN_SYMBOL: str = "𖡄 "
+    UNKNOWN_SYMBOL: str = "𖡄"
 
 
 class AudioConstants:
@@ -42,9 +42,16 @@ class MorseConstants:
     OTHER: str = "OTHER"
     LONG_SYMBOL: str = "-"
     SHORT_SYMBOL: str = "."
+    CLEAR_BUTTON_TEXT: str = "CLEAR"
     PLAY_TEXT: str = "\u25B6"
     STOP_TEXT: str = "STOP"
-    PAUSE_BETWEEN_SOUNDS_MS: int = 200
+    ENCRYPTION_MODE_ACTIVE: str = "enc"
+    DECRYPTION_MODE_ACTIVE: str = "dec"
     DEFAULT_FONT_STYLE_NAME: str = "Georgia"
     DEFAULT_FONT_SIZE: int = 20
+    PAUSE_BETWEEN_SOUNDS_MS: int = 200
     MESSAGEBOX_EXIT_TIMEOUT_MS: int = 500
+    SLIDER_MIN_VALUE: int = 10
+    SLIDER_MAX_VALUE: int = 200
+    DEFAULT_MIN_WIDTH: int = 500
+    DEFAULT_MIN_HEIGHT: int = 600
