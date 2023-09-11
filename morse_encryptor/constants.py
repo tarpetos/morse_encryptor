@@ -22,7 +22,7 @@ def platform_depending_save_folder() -> str:
 class SpecConstants:
     EMPTY_SPACE: str = " "
     EMPTY_STRING: str = ""
-    UNKNOWN_SYMBOL: str = "𖡄"
+    UNKNOWN_SYMBOL: str = "�"
 
 
 class AudioConstants:

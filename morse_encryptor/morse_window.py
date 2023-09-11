@@ -44,10 +44,10 @@ class MorsePlayer:
 
         return full_short_sound_path, full_long_sound_path
 
-    def play_sound(self, data: str) -> None:
+    def play_sound(self, entry: ctk.CTkEntry, data: str) -> None:
         temp_length = len(data)
 
-        if temp_length > self.max_dec_length:
+        if self.is_cursor_at_end(entry) and temp_length > self.max_dec_length:
             if data.endswith(MorseConstants.LONG_SYMBOL):
                 self.dash_sound.play()
             elif data.endswith(MorseConstants.SHORT_SYMBOL):
@@ -120,6 +120,12 @@ class MorsePlayer:
         audio_controller = AudioController(f"{sound_name}")
         file_data = binary_reader(f"{sound_name}")
         audio_controller.execute(audio_builder, binary_data=file_data)
+
+    @staticmethod
+    def is_cursor_at_end(entry: ctk.CTkEntry):
+        cursor_position = entry.index(ctk.END)
+        current_position = entry.index(ctk.INSERT)
+        return cursor_position == current_position
 
 
 class MorseTranslator:
@@ -324,7 +330,7 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
             self.entry_dec_modifier.set(self.encrypt_data(data, working_dict))
         elif self.entry_activated == MorseConstants.DECRYPTION_MODE_ACTIVE:
             data: str = self.entry_dec.get()
-            self.play_sound(data)
+            self.play_sound(self.entry_dec, data)
             self.entry_enc_modifier.set(self.decrypt_data(data, working_dict))
 
     def radio_button_entries_reloader(self, language: str):
