@@ -48,10 +48,10 @@ class MorsePlayer:
             MorseConstants.LONG_SYMBOL: self.dash_sound,
             MorseConstants.SHORT_SYMBOL: self.dot_sound,
         }
-    
+
         entered_char = event.char
         sound_to_play = char_sound_mapping.get(entered_char)
-    
+
         if sound_to_play is not None:
             sound_to_play.play()
 
@@ -199,11 +199,13 @@ class MorseUI(ctk.CTk):
             font=(MorseConstants.DEFAULT_FONT_STYLE_NAME, int(event))
         )
 
-    def clear_entry(self, entry_enc_modifier: ctk.StringVar, entry_dec_modifier: ctk.StringVar) -> None:
+    def clear_entry(
+        self, entry_enc_modifier: ctk.StringVar, entry_dec_modifier: ctk.StringVar
+    ) -> None:
         self.entry_enc.delete(0, ctk.END)
         self.entry_dec.delete(0, ctk.END)
-        entry_dec_modifier.set("")
-        entry_enc_modifier.set("")
+        entry_dec_modifier.set(SpecConstants.EMPTY_STRING)
+        entry_enc_modifier.set(SpecConstants.EMPTY_STRING)
 
     @staticmethod
     def copy_to_clipboard(event: Any, entry: ctk.CTkEntry, root: ctk.CTkFrame) -> None:
