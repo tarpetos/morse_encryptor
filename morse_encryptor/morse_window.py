@@ -23,7 +23,6 @@ class MorsePlayer:
         short_sound_path, long_sound_path = self.load_sounds()
         self.dot_sound = pygame.mixer.Sound(short_sound_path)
         self.dash_sound = pygame.mixer.Sound(long_sound_path)
-        self.max_dec_length = 0
         self.stop_voice_flag = False
         self.thread = None
         self.TERMINATE_THREAD_FLAG = False
@@ -44,15 +43,17 @@ class MorsePlayer:
 
         return full_short_sound_path, full_long_sound_path
 
-    def play_sound(self, entry: ctk.CTkEntry, data: str) -> None:
-        temp_length = len(data)
-
-        if self.is_cursor_at_end(entry) and temp_length > self.max_dec_length:
-            if data.endswith(MorseConstants.LONG_SYMBOL):
-                self.dash_sound.play()
-            elif data.endswith(MorseConstants.SHORT_SYMBOL):
-                self.dot_sound.play()
-        self.max_dec_length = temp_length
+    def on_entry_edit(self, event) -> None:
+        char_sound_mapping = {
+            MorseConstants.LONG_SYMBOL: self.dash_sound,
+            MorseConstants.SHORT_SYMBOL: self.dot_sound,
+        }
+    
+        entered_char = event.char
+        sound_to_play = char_sound_mapping.get(entered_char)
+    
+        if sound_to_play is not None:
+            sound_to_play.play()
 
     def voice_encrypted_input(
         self, encrypted_entry: ctk.CTkEntry, sound_button: ctk.CTkButton
@@ -115,17 +116,11 @@ class MorsePlayer:
         return False if not text else all(char in allowed_symbols for char in text)
 
     @staticmethod
-    def build_audio_from_binary(sound_name: str):
+    def build_audio_from_binary(sound_name: str) -> None:
         audio_builder = AudioBuilder()
         audio_controller = AudioController(f"{sound_name}")
         file_data = binary_reader(f"{sound_name}")
         audio_controller.execute(audio_builder, binary_data=file_data)
-
-    @staticmethod
-    def is_cursor_at_end(entry: ctk.CTkEntry):
-        cursor_position = entry.index(ctk.END)
-        current_position = entry.index(ctk.INSERT)
-        return cursor_position == current_position
 
 
 class MorseTranslator:
@@ -164,7 +159,7 @@ class MorseUI(ctk.CTk):
         self.ru_radio_button = ctk.CTkRadioButton(self.main_frame)
         self.play_morse_sound_button = ctk.CTkButton(self.main_frame)
 
-    def place_elements(self):
+    def place_elements(self) -> None:
         self.entry_enc.pack(fill=ctk.BOTH, expand=True, padx=5, pady=5)
         self.clear_entries_button.pack(fill=ctk.BOTH, padx=100, pady=(0, 5))
         self.entry_dec.pack(fill=ctk.BOTH, expand=True, padx=5, pady=(0, 5))
@@ -196,7 +191,7 @@ class MorseUI(ctk.CTk):
 
         self.main_frame.pack(padx=10, pady=10, fill=ctk.BOTH, expand=True)
 
-    def font_slider_lister(self, event):
+    def font_slider_lister(self, event: Any) -> None:
         self.entry_enc.configure(
             font=(MorseConstants.DEFAULT_FONT_STYLE_NAME, int(event))
         )
@@ -204,14 +199,14 @@ class MorseUI(ctk.CTk):
             font=(MorseConstants.DEFAULT_FONT_STYLE_NAME, int(event))
         )
 
-    def clear_entry(self, entry_enc_modifier, entry_dec_modifier):
+    def clear_entry(self, entry_enc_modifier: ctk.StringVar, entry_dec_modifier: ctk.StringVar) -> None:
         self.entry_enc.delete(0, ctk.END)
         self.entry_dec.delete(0, ctk.END)
         entry_dec_modifier.set("")
         entry_enc_modifier.set("")
 
     @staticmethod
-    def copy_to_clipboard(event: Any, entry: ctk.CTkEntry, root: ctk.CTkFrame):
+    def copy_to_clipboard(event: Any, entry: ctk.CTkEntry, root: ctk.CTkFrame) -> None:
         entry_text = entry.get()
         entry.select_range(0, ctk.END)
         root.clipboard_clear()
@@ -239,7 +234,7 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
         self.set_default_values()
         self.bind_events()
 
-    def init_ui_elements(self):
+    def init_ui_elements(self) -> None:
         self.entry_initializer(self.entry_enc, self.entry_enc_modifier)
         self.entry_initializer(self.entry_dec, self.entry_dec_modifier)
         self.entry_dec.configure(state="readonly")
@@ -282,13 +277,14 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
             self.font_slider_lister,
         )
 
-    def set_default_values(self):
+    def set_default_values(self) -> None:
         self.radio_button_selector.set(MorseConstants.ENGLISH)
         self.slider_value.set(MorseConstants.DEFAULT_FONT_SIZE)
 
-    def bind_events(self):
+    def bind_events(self) -> None:
         self.entry_enc.bind("<Button-3>", self.activate_entry_enc)
         self.entry_dec.bind("<Button-3>", self.activate_entry_dec)
+        self.entry_dec.bind("<Key>", self.on_entry_edit)
         self.entry_enc.bind(
             "<Double-Button-3>",
             lambda event: self.copy_to_clipboard(
@@ -305,23 +301,23 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
         self.entry_enc_modifier.trace("w", self.entry_modified)
         self.entry_dec_modifier.trace("w", self.entry_modified)
 
-    def activate_entry_enc(self, event: Any):
+    def activate_entry_enc(self, event: Any) -> None:
         self.entry_enc.configure(state="normal")
         self.entry_dec.configure(state="readonly")
         self.entry_activated = MorseConstants.ENCRYPTION_MODE_ACTIVE
         self.entry_enc_activation_stripper()
 
-    def entry_enc_activation_stripper(self):
+    def entry_enc_activation_stripper(self) -> None:
         striped_data = self.entry_enc_modifier.get().strip()
         self.entry_enc.delete(0, ctk.END)
         self.entry_enc.insert(0, striped_data)
 
-    def activate_entry_dec(self, event: Any):
+    def activate_entry_dec(self, event: Any) -> None:
         self.entry_dec.configure(state="normal")
         self.entry_enc.configure(state="readonly")
         self.entry_activated = MorseConstants.DECRYPTION_MODE_ACTIVE
 
-    def entry_modified(self, *args):
+    def entry_modified(self, *args) -> None:
         user_choice: str = self.radio_button_selector.get()
         working_dict: Dict[str, str] = self.alphabet_creator(user_choice)
 
@@ -330,10 +326,9 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
             self.entry_dec_modifier.set(self.encrypt_data(data, working_dict))
         elif self.entry_activated == MorseConstants.DECRYPTION_MODE_ACTIVE:
             data: str = self.entry_dec.get()
-            self.play_sound(self.entry_dec, data)
             self.entry_enc_modifier.set(self.decrypt_data(data, working_dict))
 
-    def radio_button_entries_reloader(self, language: str):
+    def radio_button_entries_reloader(self, language: str) -> None:
         self.radio_button_selector.set(language)
         working_dict = self.alphabet_creator(language)
 
@@ -350,7 +345,7 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
         target_entry: ctk.CTkEntry,
         function,
         working_dict: Dict[str, str],
-    ):
+    ) -> None:
         current_data = source_entry.get()
         source_entry.delete(0, ctk.END)
         target_entry.delete(0, ctk.END)
@@ -374,7 +369,7 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
             MorseConstants.DEFAULT_MIN_WIDTH,
             MorseConstants.DEFAULT_MIN_HEIGHT,
         ),
-    ):
+    ) -> None:
         self.place_elements()
         self.protocol("WM_DELETE_WINDOW", self.on_window_closing)
         self.title(window_name)
@@ -382,7 +377,7 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
         self.minsize(*window_size)
         self.mainloop()
 
-    def on_window_closing(self):
+    def on_window_closing(self) -> None:
         self.TERMINATE_THREAD_FLAG = True
 
         alive_threads = threading.enumerate()
@@ -392,7 +387,7 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
         self.destroy()
 
     @staticmethod
-    def entry_initializer(entry: ctk.CTkEntry, variable: ctk.Variable):
+    def entry_initializer(entry: ctk.CTkEntry, variable: ctk.Variable) -> None:
         entry.configure(
             textvariable=variable,
             font=(
@@ -402,7 +397,7 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
         )
 
     @staticmethod
-    def button_initializer(button: ctk.CTkButton, text: str, command_func):
+    def button_initializer(button: ctk.CTkButton, text: str, command_func) -> None:
         button.configure(text=text, command=command_func)
 
     @staticmethod
@@ -412,7 +407,7 @@ class MorseApp(MorseUI, MorsePlayer, MorseTranslator):
         end_value: float,
         variable: ctk.Variable,
         command_func,
-    ):
+    ) -> None:
         slider.configure(
             from_=start_value, to=end_value, variable=variable, command=command_func
         )
