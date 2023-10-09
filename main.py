@@ -1,4 +1,4 @@
-from morse_encryptor.morse_window import MorseApp
+from morse_encryptor import MorseApp
 
 
 def main():
