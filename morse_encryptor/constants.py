@@ -1,9 +1,10 @@
 import os
 import platform
 import sys
+from typing import Union, LiteralString
 
 
-def get_binary_file_path(filename) -> str:
+def get_binary_file_path(filename) -> Union[LiteralString, str, bytes]:
     if hasattr(sys, "_MEIPASS"):
         return os.path.join(sys._MEIPASS, "morse_encryptor", filename)
     return os.path.join(os.path.dirname(__file__), filename)
@@ -16,7 +17,6 @@ def platform_depending_save_folder() -> str:
         return os.path.expanduser(f"~/{sounds_folder_name}")
     elif platform.system() == "Windows":
         return os.path.expanduser(f"~/AppData/Roaming/{sounds_folder_name}")
-        # return os.path.expandvars(f"C:/Users/$USERNAME/AppData/Roaming/{sounds_folder_name}/")
 
 
 class SpecConstants:
