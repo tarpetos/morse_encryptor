@@ -1,12 +1,10 @@
-from morse_encryptor.morse_window import Window
+from morse_encryptor import MorseApp
 
 
 def main():
-    window_object = Window()
-    window_object.title('Morse (De)Coder')
-    window_object.geometry('500x200')
-    window_object.mainloop()
+    window_object: MorseApp = MorseApp()
+    window_object.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

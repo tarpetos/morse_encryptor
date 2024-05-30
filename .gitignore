@@ -1,3 +1,7 @@
 .idea
 venv/
 **/__pycache__/
+build/
+dist/
+main.spec
+morse_encryptor/sounds/*.wav

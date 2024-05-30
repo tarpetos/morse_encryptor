@@ -1,32 +1,33 @@
-from typing import Dict
+from typing import Dict, List
+
+from .constants import SpecConstants
 
 
 def encrypt(text_data: str, working_dict: Dict[str, str]) -> str:
-    text_data = text_data.upper()
-    text_data_list = list(text_data)
-    print(text_data_list)
+    text_data: str = text_data.upper()
 
-    encrypted_message = ''.join(
-        ' ' if char == ' ' else ('𖡄 ' if char not in working_dict.keys() else working_dict[f'{char}'] + ' ')
-        for char in text_data_list
-    )
-
-    return encrypted_message.strip()
-
-
-def get_key_by_value(working_dict: Dict[str, str], value: str) -> str:
-    for key, val in working_dict.items():
-        if val == value:
-            return key
-    return '𖡄'
+    encrypted_message = [
+        SpecConstants.EMPTY_SPACE
+        if char == SpecConstants.EMPTY_SPACE
+        else (
+            working_dict.get(char, SpecConstants.UNKNOWN_SYMBOL)
+            + SpecConstants.EMPTY_SPACE
+        )
+        for char in text_data
+    ]
+    return "".join(encrypted_message).strip()
 
 
 def decrypt(encrypted_data: str, working_dict: Dict[str, str]) -> str:
-    encrypted_data_list = encrypted_data.split(' ')
-    print(encrypted_data_list)
+    encrypted_data_list: List[str] = encrypted_data.split(SpecConstants.EMPTY_SPACE)
 
-    decrypted_message = ''.join(
-        ' ' if enc_char == '' else get_key_by_value(working_dict, enc_char)
+    decrypted_message = [
+        SpecConstants.EMPTY_SPACE
+        if enc_char == SpecConstants.EMPTY_STRING
+        else next(
+            (key for key, val in working_dict.items() if val == enc_char),
+            SpecConstants.UNKNOWN_SYMBOL.strip(),
+        )
         for enc_char in encrypted_data_list
-    )
-    return decrypted_message.strip()
+    ]
+    return "".join(decrypted_message)
